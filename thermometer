@@ -20,13 +20,13 @@ my $hash = decode_json($json);
 
 my $structures = $hash->{structures};
 my $structure = (keys %$structures)[0];
-my $home = $structures->{$structure}->{away} eq "home" ? 1 : 0;
+my $away = $structures->{$structure}->{away} eq "away" ? 1 : 0;
 
 my $thermostats = $hash->{devices}->{thermostats};
 my $thermostat = (keys %$thermostats)[0];
 my $t = $thermostats->{$thermostat};
 $cmd .= sprintf(" N:%.1f:%.1f:%.1f:%d", $t->{'target_temperature_c'},
 						$t->{'ambient_temperature_c'},
-						$t->{'humidity'}, $home);
+						$t->{'humidity'}, $away);
 print $cmd, "\n";
 #exec($cmd);
