@@ -7,7 +7,7 @@ use POSIX qw(strftime);
 use lib "/home/pi/perl5/lib/perl5";
 use JSON "decode_json";
 
-my $cmd = "/usr/bin/rrdtool update /home/pi/nest/thermostat.rrd --template Target_temp:Ambient_temp:Humidity:Away";
+my $cmd = "/usr/bin/rrdtool update /home/pi/Nest/thermostat.rrd --template Target_temp:Ambient_temp:Humidity:Away";
 
 # suck in the JSON on stdin
 my $json = <STDIN>;
@@ -28,5 +28,5 @@ my $t = $thermostats->{$thermostat};
 $cmd .= sprintf(" N:%.1f:%.1f:%.1f:%d", $t->{'target_temperature_c'},
 						$t->{'ambient_temperature_c'},
 						$t->{'humidity'}, $away);
-print $cmd, "\n";
-#exec($cmd);
+#print $cmd, "\n";
+exec($cmd);
