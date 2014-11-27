@@ -11,7 +11,7 @@ my $cmd = "/usr/bin/rrdtool update /home/pi/Nest/thermostat.rrd --template Targe
 
 while (<STDIN>) {
 	chomp();
-	/^event: (s+)/ || next;
+	/^event:\ (\S+)/ || next;
 	if ($1 =~ 'put|keep-alive') {
 		my $data = <STDIN>;
 		print $data;
