@@ -3,42 +3,20 @@
 use strict;
 use warnings;
 use Data::Dumper;
-use POSIX qw(strftime);
 use lib "/home/pi/perl5/lib/perl5";
-use JSON "decode_json";
 
-my $cmd = "/usr/bin/rrdtool update /home/pi/Nest/thermostat.rrd --template Target_temp:Ambient_temp:Humidity:Away";
+open(OUT, ">>nest-streaming.json") || die;
 
 while (<STDIN>) {
 	chomp();
 	/^event:\ (\S+)/ || next;
-	if ($1 =~ 'put|keep-alive') {
+	if ($1 eq 'put') {
 		my $data = <STDIN>;
-		print $data;
-	} else {
-		next;
+		$data =~ s/^data:\ //;
+		flock(OUT, 2);
+		seek(OUT, 0, 0);
+		truncate(OUT, 0);
+		print OUT $data;
+		flock(OUT, 8);
 	}
 }
-exit;
-
-# suck in the JSON on stdin
-my $json = <STDIN>;
-
-# translate the JSON into a multi-level perl structure
-my $hash = decode_json($json);
-
-#print Dumper($hash);
-#exit;
-
-my $structures = $hash->{structures};
-my $structure = (keys %$structures)[0];
-my $away = $structures->{$structure}->{away} eq "away" ? 1 : 0;
-
-my $thermostats = $hash->{devices}->{thermostats};
-my $thermostat = (keys %$thermostats)[0];
-my $t = $thermostats->{$thermostat};
-$cmd .= sprintf(" N:%.1f:%.1f:%.1f:%d", $t->{'target_temperature_c'},
-						$t->{'ambient_temperature_c'},
-						$t->{'humidity'}, $away);
-#print $cmd, "\n";
-exec($cmd);

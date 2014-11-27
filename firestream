@@ -1,0 +1,11 @@
+#!/bin/bash
+
+dir=/home/pi/Nest
+
+cd $dir
+source ./authkey
+
+while [ 1 ]; do {
+	stdbuf -oL curl -s -L -X GET -H "Accept: text/event-stream" "https://developer-api.nest.com/?auth=$key" | ./save_state
+}
+done

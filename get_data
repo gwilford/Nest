@@ -1,0 +1,10 @@
+#!/bin/bash
+
+dir=/home/pi/Nest
+json=nest.json
+
+cd $dir
+source ./authkey
+
+curl -s -L -X GET -H "Accept: application/json" "https://developer-api.nest.com/?auth=$key" > $json
+cat $json | ./thermometer
