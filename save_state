@@ -9,12 +9,12 @@ use JSON "decode_json";
 my $structure = $ARGV[0];
 my $thermostat = $ARGV[1];
 my $away;
-select(STDOUT); $| = 1;
 
-print localtime() . ": --start--\n";
 open(OUT, ">>nest-streaming.json") || die;
 open(EVENTLOG, ">>thermometer.evt") || die;
 select(EVENTLOG); $| = 1;
+select(STDOUT); $| = 1;
+print localtime() . ": --start--\n";
 
 sub lock {
 	flock(OUT, 2);
