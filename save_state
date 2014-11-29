@@ -43,13 +43,16 @@ while (<STDIN>) {
 		$data =~ s/^data:\ //;
 
 		my $hash = decode_json($data);
+		my $newaway = $hash->{data}->{structures}->{$structure}->{away};
 		if ($away) {
-			if ($away ne ($away = $hash->{data}->{structures}->{$structure}->{away})) {
-				event($away);
+			if ($away ne $newaway) {
+				event($newaway);
+				timestamp("change away=$newaway");
 			}
 		} else {
-			$away = $hash->{data}->{structures}->{$structure}->{away};
+			timestamp("initalise away=$newaway");
 		}
+		$away = $newaway;
 
 		initlock();
 		print OUT $data;
