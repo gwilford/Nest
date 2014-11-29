@@ -14,9 +14,8 @@ open(OUT, ">>nest-streaming.json") || die;
 open(EVENTLOG, ">>thermometer.evt") || die;
 select(EVENTLOG); $| = 1;
 select(STDOUT); $| = 1;
-print localtime() . ": --start--\n";
 
-sub lock {
+sub initlock {
 	flock(OUT, 2);
 	seek(OUT, 0, 0);
 	truncate(OUT, 0);
@@ -30,6 +29,11 @@ sub event {
 	printf(EVENTLOG "%d %s\n", time(), $_[0]);
 }
 
+sub timestamp {
+	print STDOUT localtime() . ": " . $_[0] . "\n";
+}
+
+timestamp("--start--");
 while (<STDIN>) {
 	chomp();
 	# only respond to events
@@ -47,7 +51,7 @@ while (<STDIN>) {
 			$away = $hash->{data}->{structures}->{$structure}->{away};
 		}
 
-		lock();
+		initlock();
 		print OUT $data;
 		unlock();
 
@@ -55,8 +59,8 @@ while (<STDIN>) {
 		# don't log keep-alives
 		next;
 	}
-	print localtime() . ": $1\n";
+	timestamp($1);
 }
-print localtime() . ": --stop--\n";
+timestamp("--stop--");
 close(EVENTLOG);
 close(OUT);
