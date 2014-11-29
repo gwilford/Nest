@@ -13,6 +13,6 @@ exec 1>$logfile 2>&1
 
 while [ 1 ]; do {
 	stdbuf -oL curl -s -L -X GET -H "Accept: text/event-stream" "https://developer-api.nest.com/?auth=$key" | \
-		stdbuf -oL ./save_state $thermometer || exit
+		stdbuf -oL ./save_state $structure $thermometer || exit
 }
 done
