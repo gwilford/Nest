@@ -5,18 +5,28 @@ use warnings;
 use Data::Dumper;
 use lib "/home/pi/perl5/lib/perl5";
 
+print localtime() . ": --start--\n";
 open(OUT, ">>nest-streaming.json") || die;
 
 while (<STDIN>) {
 	chomp();
+	# only respond to events
 	/^event:\ (\S+)/ || next;
 	if ($1 eq 'put') {
 		my $data = <STDIN>;
 		$data =~ s/^data:\ //;
+
 		flock(OUT, 2);
 		seek(OUT, 0, 0);
 		truncate(OUT, 0);
+
 		print OUT $data;
+
 		flock(OUT, 8);
+	} elsif ($1 eq "keep-alive") {
+		# don't log keep-alives
+		next;
 	}
+	print localtime() . ": $1\n";
 }
+print localtime() . ": --stop--\n";
