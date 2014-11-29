@@ -9,6 +9,7 @@ use JSON "decode_json";
 my $structure = $ARGV[0];
 my $thermostat = $ARGV[1];
 my $away;
+$| = 1;
 
 print localtime() . ": --start--\n";
 open(OUT, ">>nest-streaming.json") || die;
