@@ -4,9 +4,15 @@ use strict;
 use warnings;
 use Data::Dumper;
 use lib "/home/pi/perl5/lib/perl5";
+use JSON "decode_json";
+
+my $structure = $ARGV[0];
+my $thermostat = $ARGV[1];
+my $away;
 
 print localtime() . ": --start--\n";
 open(OUT, ">>nest-streaming.json") || die;
+open(EVENTLOG, ">>thermometer.evt") || die;
 
 sub lock {
 	flock(OUT, 2);
@@ -17,7 +23,11 @@ sub lock {
 sub unlock {
 	flock(OUT, 8);
 }	
-	
+
+sub event {
+	printf(EVENTLOG "%d %s\n", time(), $_[0]);
+}
+
 while (<STDIN>) {
 	chomp();
 	# only respond to events
@@ -25,6 +35,15 @@ while (<STDIN>) {
 	if ($1 eq 'put') {
 		my $data = <STDIN>;
 		$data =~ s/^data:\ //;
+
+		my $hash = decode_json($data);
+		if ($away) {
+			if ($away ne ($away = $hash->{data}->{structures}->{$structure}->{away})) {
+				event($away);
+			}
+		} else {
+			$away = $hash->{data}->{structures}->{$structure}->{away};
+		}
 
 		lock();
 		print OUT $data;
@@ -37,3 +56,5 @@ while (<STDIN>) {
 	print localtime() . ": $1\n";
 }
 print localtime() . ": --stop--\n";
+close(EVENTLOG);
+close(OUT);
