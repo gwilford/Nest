@@ -8,7 +8,7 @@ use JSON "decode_json";
 
 my $structure = $ARGV[0];
 my $thermostat = $ARGV[1];
-my $away;
+my $away = "";
 
 open(OUT, ">>nest-streaming.json") || die;
 open(EVENTLOG, ">>thermometer.evt") || die;
