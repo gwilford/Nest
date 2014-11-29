@@ -1,11 +1,18 @@
 #!/bin/bash
 
+
 dir=/home/pi/Nest
+logfile=firestream.log
+config=api.config
+key=dummy
+thermometer=none
 
 cd $dir
-source ./authkey
+exec 1>$logfile 2>&1 
+[ -f $config ] && source $config || echo "No config file found"
 
 while [ 1 ]; do {
-	stdbuf -oL curl -s -L -X GET -H "Accept: text/event-stream" "https://developer-api.nest.com/?auth=$key" | ./save_state
+	stdbuf -oL curl -s -L -X GET -H "Accept: text/event-stream" "https://developer-api.nest.com/?auth=$key" | \
+		./save_state $thermometer || exit
 }
 done
