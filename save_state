@@ -9,6 +9,9 @@ use JSON "decode_json";
 my $structure = $ARGV[0];
 my $thermostat = $ARGV[1];
 my $away = "";
+my $target = "";
+my $ambient = "";
+my $humidity = "";
 
 open(OUT, ">>nest-streaming.json") || die;
 open(EVENTLOG, ">>thermometer.evt") || die;
@@ -44,6 +47,9 @@ while (<STDIN>) {
 
 		my $hash = decode_json($data);
 		my $newaway = $hash->{data}->{structures}->{$structure}->{away};
+		$ambient = $hash->{data}->{devices}->{thermostats}->{$thermostat}->{ambient_temperature_c};
+		$target = $hash->{data}->{devices}->{thermostats}->{$thermostat}->{target_temperature_c};
+		$humidity = $hash->{data}->{devices}->{thermostats}->{$thermostat}->{humidity};
 		if ($away) {
 			if ($away ne $newaway) {
 				event($newaway);
@@ -60,9 +66,10 @@ while (<STDIN>) {
 
 	} elsif ($1 eq "keep-alive") {
 		# don't log keep-alives
+		#my $data = <STDIN>;
 		next;
 	}
-	timestamp($1);
+	timestamp(sprintf("%s %.1f:%.1f:%.1f", $1, $ambient, $target, $humidity));
 }
 timestamp("--stop--");
 close(EVENTLOG);
