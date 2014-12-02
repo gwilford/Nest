@@ -8,6 +8,7 @@ use JSON "decode_json";
 
 my $structure = $ARGV[0];
 my $thermostat = $ARGV[1];
+my $cmd = "/usr/bin/rrdtool update /home/pi/Nest/thermostat.rrd --template Target_temp:Ambient_temp:Humidity:Away ";
 my $away = "";
 my $target = "";
 my $ambient = "";
@@ -69,7 +70,9 @@ while (<STDIN>) {
 		#my $data = <STDIN>;
 		next;
 	}
-	timestamp(sprintf("%s %.1f:%.1f:%.1f", $1, $ambient, $target, $humidity));
+	my $s = sprintf("N:%.1f:%.1f:%.1f:%d", $ambient, $target, $humidity, $away ne "home");
+	timestamp("$1 $s");
+	system($cmd . $s);
 }
 timestamp("--stop--");
 close(EVENTLOG);
