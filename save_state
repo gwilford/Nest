@@ -16,7 +16,6 @@ my $target = "";
 my $ambient = "";
 my $humidity = "";
 
-open(OUT, ">>nest-streaming.json") || die;
 open(EVENTLOG, ">>thermometer.evt") || die;
 select(EVENTLOG); $| = 1;
 select(STDOUT); $| = 1;
@@ -63,4 +62,3 @@ while (<STDIN>) {
 }
 timestamp("--stop--");
 close(EVENTLOG);
-close(OUT);
