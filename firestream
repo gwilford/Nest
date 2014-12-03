@@ -1,11 +1,11 @@
 #!/bin/bash
 
-
 dir=/home/pi/Nest
 logfile=firestream.log
 config=api.config
 key=dummy
 thermostat=none
+structure=none
 
 cd $dir
 exec 1>$logfile 2>&1 

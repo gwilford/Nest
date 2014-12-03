@@ -5,29 +5,22 @@ use warnings;
 use Data::Dumper;
 use lib "/home/pi/perl5/lib/perl5";
 use JSON "decode_json";
+use RRD::Simple;
+
+# could use HTTP::Tiny rather than curl...
 
 my $structure = $ARGV[0];
 my $thermostat = $ARGV[1];
-my $cmd = "/usr/bin/rrdtool update /home/pi/Nest/thermostat.rrd --template Target_temp:Ambient_temp:Humidity:Away ";
+#my $cmd = "/usr/bin/rrdtool update /home/pi/Nest/thermostat.rrd --template Target_temp:Ambient_temp:Humidity:Away ";
 my $away = "";
 my $target = "";
 my $ambient = "";
 my $humidity = "";
+my $rrd = RRD::Simple->new( file => "/home/pi/Nest/thermostat.rrd" );
 
-open(OUT, ">>nest-streaming.json") || die;
 open(EVENTLOG, ">>thermometer.evt") || die;
 select(EVENTLOG); $| = 1;
 select(STDOUT); $| = 1;
-
-sub initlock {
-	flock(OUT, 2);
-	seek(OUT, 0, 0);
-	truncate(OUT, 0);
-}
-
-sub unlock {
-	flock(OUT, 8);
-}	
 
 sub event {
 	printf(EVENTLOG "%d %s\n", time(), $_[0]);
@@ -51,6 +44,8 @@ while (<STDIN>) {
 		$ambient = $hash->{data}->{devices}->{thermostats}->{$thermostat}->{ambient_temperature_c};
 		$target = $hash->{data}->{devices}->{thermostats}->{$thermostat}->{target_temperature_c};
 		$humidity = $hash->{data}->{devices}->{thermostats}->{$thermostat}->{humidity};
+		$rrd->update( Target_temp => $target, Ambient_temp => $ambient, 
+			      Humidity => $humidity, Away => $away ne "home");
 		if ($away) {
 			if ($away ne $newaway) {
 				event($newaway);
@@ -60,20 +55,14 @@ while (<STDIN>) {
 			timestamp("initalise away=$newaway");
 		}
 		$away = $newaway;
-
-		initlock();
-		print OUT $data;
-		unlock();
-
 	} elsif ($1 eq "keep-alive") {
 		# don't log keep-alives
-		#my $data = <STDIN>;
+		my $data = <STDIN>;
 		next;
 	}
 	my $s = sprintf("N:%.1f:%.1f:%.1f:%d", $ambient, $target, $humidity, $away ne "home");
 	timestamp("$1 $s");
-	system($cmd . $s);
+	#system($cmd . $s);
 }
 timestamp("--stop--");
 close(EVENTLOG);
-close(OUT);
