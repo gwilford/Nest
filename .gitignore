@@ -5,3 +5,4 @@
 *.rrd
 authkey
 api.config
+*.evt
