@@ -6,6 +6,8 @@ use Data::Dumper;
 use lib "/home/pi/perl5/lib/perl5";
 use JSON "decode_json";
 
+# could use HTTP::Tiny rather than curl...
+
 my $structure = $ARGV[0];
 my $thermostat = $ARGV[1];
 my $cmd = "/usr/bin/rrdtool update /home/pi/Nest/thermostat.rrd --template Target_temp:Ambient_temp:Humidity:Away ";
@@ -18,16 +20,6 @@ open(OUT, ">>nest-streaming.json") || die;
 open(EVENTLOG, ">>thermometer.evt") || die;
 select(EVENTLOG); $| = 1;
 select(STDOUT); $| = 1;
-
-sub initlock {
-	flock(OUT, 2);
-	seek(OUT, 0, 0);
-	truncate(OUT, 0);
-}
-
-sub unlock {
-	flock(OUT, 8);
-}	
 
 sub event {
 	printf(EVENTLOG "%d %s\n", time(), $_[0]);
@@ -60,14 +52,9 @@ while (<STDIN>) {
 			timestamp("initalise away=$newaway");
 		}
 		$away = $newaway;
-
-		#initlock();
-		#print OUT $data;
-		#unlock();
-
 	} elsif ($1 eq "keep-alive") {
 		# don't log keep-alives
-		#my $data = <STDIN>;
+		my $data = <STDIN>;
 		next;
 	}
 	my $s = sprintf("N:%.1f:%.1f:%.1f:%d", $ambient, $target, $humidity, $away ne "home");
