@@ -61,6 +61,8 @@ while (<STDIN>) {
 	}
 	my $s = sprintf("N:%.1f:%.1f:%.1f:%d", $ambient, $target, $humidity, $away ne "home");
 	timestamp("$1 $s");
+	# hack to ensure no illegal RRD update attempts
+	sleep(1);
 }
 timestamp("--stop--");
 close(EVENTLOG);
