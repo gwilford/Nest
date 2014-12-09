@@ -12,10 +12,12 @@ use RRD::Simple;
 my $structure = $ARGV[0];
 my $thermostat = $ARGV[1];
 my $away = "";
-my $target = "";
-my $ambient = "";
-my $humidity = "";
+my $newaway = "U";
+my $target = "U";
+my $ambient = "U";
+my $humidity = "U";
 my $rrd = RRD::Simple->new( file => "/home/pi/Nest/thermostat.rrd" );
+my $heartbeat = 600;
 
 open(EVENTLOG, ">>thermometer.evt") || die;
 select(EVENTLOG); $| = 1;
@@ -29,7 +31,16 @@ sub timestamp {
 	print STDOUT localtime() . ": " . $_[0] . "\n";
 }
 
+sub rrdupdate {
+	$rrd->update( Target_temp => $target, Ambient_temp => $ambient, 
+		      Humidity => $humidity, Away => ($newaway ne "home"));
+	sleep(1);
+	alarm($heartbeat);
+}
+
+$SIG{ALRM} = \&rrdupdate();
 timestamp("--start--");
+alarm($heartbeat);
 while (<STDIN>) {
 	chomp();
 	# only respond to events
@@ -39,12 +50,11 @@ while (<STDIN>) {
 		$data =~ s/^data:\ //;
 
 		my $hash = decode_json($data);
-		my $newaway = $hash->{data}->{structures}->{$structure}->{away};
+		$newaway = $hash->{data}->{structures}->{$structure}->{away};
 		$ambient = $hash->{data}->{devices}->{thermostats}->{$thermostat}->{ambient_temperature_c};
 		$target = $hash->{data}->{devices}->{thermostats}->{$thermostat}->{target_temperature_c};
 		$humidity = $hash->{data}->{devices}->{thermostats}->{$thermostat}->{humidity};
-		$rrd->update( Target_temp => $target, Ambient_temp => $ambient, 
-			      Humidity => $humidity, Away => $away ne "home");
+		rrdupdate();
 		if ($away) {
 			if ($away ne $newaway) {
 				event($newaway);
@@ -61,8 +71,6 @@ while (<STDIN>) {
 	}
 	my $s = sprintf("N:%.1f:%.1f:%.1f:%d", $ambient, $target, $humidity, $away ne "home");
 	timestamp("$1 $s");
-	# hack to ensure no illegal RRD update attempts
-	sleep(1);
 }
 timestamp("--stop--");
 close(EVENTLOG);
