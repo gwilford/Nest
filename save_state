@@ -38,7 +38,7 @@ sub rrdupdate {
 	alarm($heartbeat);
 }
 
-$SIG{ALRM} = \&rrdupdate();
+$SIG{ALRM} = \&rrdupdate;
 timestamp("--start--");
 alarm($heartbeat);
 while (<STDIN>) {
