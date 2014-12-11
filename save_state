@@ -34,8 +34,8 @@ sub timestamp {
 sub rrdupdate {
 	$rrd->update( Target_temp => $target, Ambient_temp => $ambient, 
 		      Humidity => $humidity, Away => ($newaway ne "home"));
-	sleep(1);
 	alarm($heartbeat);
+	sleep(1);
 }
 
 $SIG{ALRM} = sub { rrdupdate() ; timestamp("timer-trigerred RRD update") };
