@@ -41,11 +41,14 @@ sub rrdupdate {
 $SIG{ALRM} = sub { rrdupdate(); timestamp("timer-trigerred RRD update") };
 timestamp("--start--");
 alarm($heartbeat);
+
+# Loop on streamed web-server responses
 while (<STDIN>) {
 	chomp();
 	# only respond to events
 	/^event:\ (\S+)/ || next;
 	if ($1 eq 'put') {
+		# Local cached data needs updating
 		my $data = <STDIN>;
 		$data =~ s/^data:\ //;
 
@@ -55,6 +58,7 @@ while (<STDIN>) {
 		$target = $hash->{data}->{devices}->{thermostats}->{$thermostat}->{target_temperature_c};
 		$humidity = $hash->{data}->{devices}->{thermostats}->{$thermostat}->{humidity};
 		rrdupdate();
+		# Manage "away" state changes
 		if ($away) {
 			if ($away ne $newaway) {
 				event($newaway);
@@ -65,7 +69,7 @@ while (<STDIN>) {
 		}
 		$away = $newaway;
 	} elsif ($1 eq "keep-alive") {
-		# don't log keep-alives
+		# Use keep-alives to trigger RRD refreshes
 		my $data = <STDIN>;
 		rrdupdate();
 		timestamp("$1 RRD update");
@@ -74,5 +78,7 @@ while (<STDIN>) {
 	my $s = sprintf("N:%.1f:%.1f:%.1f:%d", $ambient, $target, $humidity, $away ne "home");
 	timestamp("$1 $s");
 }
+
+alarm(0);
 timestamp("--stop--");
 close(EVENTLOG);
