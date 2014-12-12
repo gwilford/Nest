@@ -38,7 +38,7 @@ sub rrdupdate {
 	sleep(1);
 }
 
-$SIG{ALRM} = sub { rrdupdate() ; timestamp("timer-trigerred RRD update") };
+$SIG{ALRM} = sub { rrdupdate(); timestamp("timer-trigerred RRD update") };
 timestamp("--start--");
 alarm($heartbeat);
 while (<STDIN>) {
@@ -67,6 +67,8 @@ while (<STDIN>) {
 	} elsif ($1 eq "keep-alive") {
 		# don't log keep-alives
 		my $data = <STDIN>;
+		rrdupdate();
+		timestamp("$1 RRD update");
 		next;
 	}
 	my $s = sprintf("N:%.1f:%.1f:%.1f:%d", $ambient, $target, $humidity, $away ne "home");
