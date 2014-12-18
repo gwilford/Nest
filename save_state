@@ -72,7 +72,7 @@ while (<STDIN>) {
 		# Use keep-alives to trigger RRD refreshes
 		my $data = <STDIN>;
 		rrdupdate();
-		timestamp("$1 RRD update");
+		#timestamp("$1 RRD update");
 		next;
 	}
 	my $s = sprintf("N:%.1f:%.1f:%.1f:%d", $ambient, $target, $humidity, $away ne "home");
