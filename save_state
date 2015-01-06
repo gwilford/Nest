@@ -54,9 +54,15 @@ while (<STDIN>) {
 
 		my $hash = decode_json($data);
 		$newaway = $hash->{data}->{structures}->{$structure}->{away};
-		$ambient = $hash->{data}->{devices}->{thermostats}->{$thermostat}->{ambient_temperature_c};
-		$target = $hash->{data}->{devices}->{thermostats}->{$thermostat}->{target_temperature_c};
-		$humidity = $hash->{data}->{devices}->{thermostats}->{$thermostat}->{humidity};
+
+		my $stat = $hash->{data}->{devices}->{thermostats}->{$thermostat};
+		$ambient = $stat->{ambient_temperature_c};
+		$humidity = $stat->{humidity};
+		if ($newaway ne "home") {
+			$target = $stat->{away_temperature_low_c};
+		} else {	
+			$target = $stat->{target_temperature_c};
+		}
 		rrdupdate();
 		# Manage "away" state changes
 		if ($away) {
