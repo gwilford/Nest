@@ -20,7 +20,7 @@ my $rrd = RRD::Simple->new( file => "/home/pi/Nest/thermostat.rrd" );
 my $heartbeat = 600;
 
 # set in settings->equipment
-my $satefy_temp = 4;
+my $safety_temp = 4;
 
 open(EVENTLOG, ">>thermometer.evt") || die;
 select(EVENTLOG); $| = 1;
@@ -63,7 +63,7 @@ while (<STDIN>) {
 		$humidity = $stat->{humidity};
 
 		# check if we are "off" or away
-		if ($stat->{hvac_mode} eq "off" { # or "heat"
+		if ($stat->{hvac_mode} eq "off") { # or "heat"
 			$target = $safety_temp;
 		} elsif ($newaway ne "home") {
 			$target = $stat->{away_temperature_low_c};
